@@ -59,7 +59,15 @@ class Chrome(object):
         #     }
         # }
         # options.add_experimental_option('prefs', prefs)
-        options._arguments = [
+
+        # Changing this so that previous chrome options may not be corrupted
+        # and this line make sure that the argument exists
+        # options._arguments = [] if options._arguments is None else options._arguments
+        # it is not recommended to forcably add arguments since the arguments are protected
+        extensions = [
+            r"~\AppData\Local\Google\Chrome\User Data\Default\Extensions\google_translate.crx",
+        ]
+        arguments = [
             # * Chrome options can be found here: https://peter.sh/experiments/chromium-command-line-switches/ (China available too)
             # * or here: https://chromium.googlesource.com/chromium/src/+/master/chrome/common/chrome_switches.cc (Don't think this is available in China hahaha)
             # * or here: https://sites.google.com/a/chromium.org/chromedriver/capabilities
@@ -80,6 +88,11 @@ class Chrome(object):
             # It's called: selenium.common.exceptions.InvalidArgumentException: Message: invalid argument: user data directory is already in use, please specify a unique value for --user-data-dir argument, or don't use --user-data-dir
             # r"--user-data-dir=C:\\Users\\56295\AppData\\Local\\Google\\Chrome\\User Data\Default",
         ]
+        for argument in arguments:
+            options.add_argument(argument)
+        # Add desired extension here
+        for extension in extensions:
+            options.add_extension(extension)
         # You know, I've tried to use one sentence to do the following which is like options_arguments = ...
         # It works, of course, but it doesn't feel quite right
         # Well, eventually I used the one sentence version

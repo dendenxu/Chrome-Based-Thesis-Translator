@@ -156,9 +156,9 @@ class Chrome(object):
         offset = 0
         while length > SLICE_THRESHOLD:
             length -= SLICE_THRESHOLD
-            slices.append(content[offset:offset+SLICE_THRESHOLD-1])
+            slices.append(content[offset:offset+SLICE_THRESHOLD])
             offset += SLICE_THRESHOLD
-        slices.append(content[offset+SLICE_THRESHOLD:-1])
+        slices.append(content[offset:-1])
         translated = []
         input_box = self.driver.find_element_by_css_selector(TRANSLATE_INPUTBOX_CSS_SELECTOR)
         input_box.click()

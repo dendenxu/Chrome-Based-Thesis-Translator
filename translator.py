@@ -45,28 +45,6 @@ TRANSLATE_COPIER_BUTTON_CLASS_NAME = copiers[ENGINE]
 TRANSLATE_INPUT_ID = input_id[ENGINE]
 
 
-def readyToBeginActions(self):
-    # Returns whether the desired element is found.
-    # Used when trying to begin action while your page is not fully loaded
-    # Can be easily modified to search for multiple css elements
-    try:
-        self.find_element_by_css_selector(TRANSLATE_INPUTBOX_CSS_SELECTOR)
-        return True
-    except:
-        return False
-
-
-def readyToCopiedTranslated(self):
-    # Returns whether the desired element is found.
-    # Used when trying to begin action while your page is not fully loaded
-    # Can be easily modified to search for multiple css elements
-    try:
-        self.find_element_by_class_name(TRANSLATE_OUTPUTBOX_CLASS_NAME)
-        return True
-    except:
-        return False
-
-
 class Chrome(object):
     # Chrome webdriver class
     def __init__(self):
@@ -88,7 +66,8 @@ class Chrome(object):
         # options._arguments = [] if options._arguments is None else options._arguments
         # it is not recommended to forceably add arguments since the arguments are protected
         extensions = [
-            r"~\AppData\Local\Google\Chrome\User Data\Default\Extensions\google_translate.crx",
+            # r"~\AppData\Local\Google\Chrome\User Data\Default\Extensions\google_translate.crx",
+            r".\google_translate.crx",
         ]
         arguments = [
             # * Chrome options can be found here: https://peter.sh/experiments/chromium-command-line-switches/ (China available too)
@@ -126,13 +105,12 @@ class Chrome(object):
             self.driver.get(TRANSLATE_SERVER_URL)
             # waiter.until(
             #     EC.presence_of_element_located((By.CSS_SELECTOR, r'#source')))
-            self.waiter.until(readyToBeginActions)
+            self.waiter.until(ready_to_begin_actions)
             # self.driver.refresh()
             # waiter.until(readyToBeginActions)
             # self.driver.execute_script("window.stop();")
         except exceptions.TimeoutException as e:
-            print(
-                "Check you internet connection. Or maybe I used the wrong css selector.")
+            print("Check you internet connection. Or maybe I used the wrong css selector.")
             print(e)
 
     def __del__(self):
@@ -163,20 +141,65 @@ class Chrome(object):
         input_box = self.driver.find_element_by_css_selector(TRANSLATE_INPUTBOX_CSS_SELECTOR)
         input_box.click()
         input_box.clear()
-        for slc in slices:
-            # input_box.send_keys(slc)
-            input_box.clear()
-            input_box.send_keys(Keys.CONTROL, "a")
-            input_box.send_keys(Keys.BACKSPACE)
-            try:
-                self.driver.execute_script("document.getElementById('%s').value=%s" % (TRANSLATE_INPUT_ID, repr(slc)))
-            except:
-                input_box.send_keys('\\\r\n'.join(slc.replace('\'', '\"').split("\r\n")).replace("\\\\", "\\ \\"))
-            self.waiter.until(readyToCopiedTranslated)
-            output_box = self.driver.find_element_by_class_name(TRANSLATE_OUTPUTBOX_CLASS_NAME)
-            translated.append(output_box.text)
-            print(translated[-1])
+        # TODO: Use different file naming here
+        # TODO: Make use of the translate next 5000 button
+        with open("translated.txt", "a+", encoding="utf-8") as f:
+            for slc in slices:
+                # input_box.send_keys(slc)
+                input_box.send_keys(Keys.CONTROL, "a")
+                input_box.send_keys(Keys.BACKSPACE)
+                # time.sleep or things happen
+                # Guess things happen because Google sets it transaltion to be faded out until some amount of time
+                self.waiter.until(ready_to_paste_next)
+                try:
+                    self.driver.execute_script("document.getElementById('%s').value=%s" % (TRANSLATE_INPUT_ID, repr(slc)))
+                except:
+                    input_box.send_keys('\\\r\n'.join(slc.replace('\'', '\"').split("\r\n")).replace("\\\\", "\\ \\"))
+                self.waiter.until(ready_to_copy_translated)
+                output_box = self.driver.find_element_by_class_name(TRANSLATE_OUTPUTBOX_CLASS_NAME)
+                translated.append(output_box.text)
+                # TODO: ENABLE THE EXTENSION OPTION BY DEFAULT
+                # And I believe that's a little bit hard to implement until I learned how to use JavaScript
+                f.write(translated[-1])
+                # print(translated[-1])
+        f.close()
         # print(''.join(translated))
+
+def ready_to_paste_next(driver):
+    try:
+        driver.find_element_by_css_selector(".tlid-result")
+        return False
+    except:
+        return True
+
+def change_source_lang_2_en(driver):
+    language_changer = driver.find_element_by_css_selector("body > div.frame > div.page.tlid-homepage.homepage.translate-text > div.homepage-content-wrap > div.tlid-source-target.main-header > div.source-target-row > div.tlid-input.input > div.tlid-language-bar.ls-wrap > div.sl-selector.lang_list > div > a")
+    language_changer.click()
+    language_changer = driver.find_element_by_css_selector("body > div.frame > div.page.tlid-language-picker-page.language-picker-page > div > div.outer-wrap > div:nth-child(1) > div:nth-child(2) > div > div:nth-child(3) > div.language_list_item_wrapper.language_list_item_wrapper-en > div.language_list_item.language_list_item_language_name")
+    language_changer.click()
+
+
+def ready_to_begin_actions(driver):
+    # Returns whether the desired element is found.
+    # Used when trying to begin action while your page is not fully loaded
+    # Can be easily modified to search for multiple css elements
+    try:
+        driver.find_element_by_css_selector(TRANSLATE_INPUTBOX_CSS_SELECTOR)
+        change_source_lang_2_en(driver)
+        return True
+    except:
+        return False
+
+
+def ready_to_copy_translated(driver):
+    # Returns whether the desired element is found.
+    # Used when trying to begin action while your page is not fully loaded
+    # Can be easily modified to search for multiple css elements
+    try:
+        driver.find_element_by_class_name(TRANSLATE_OUTPUTBOX_CLASS_NAME)
+        return True
+    except:
+        return False
 
 
 def main():
@@ -213,7 +236,8 @@ def quite_execute(func, global_vars=None, local_vars=None):
     try:
         exec(func, global_vars, local_vars)
     except BaseException as e:
-        print(e)
+        # print(e)
+        pass
 # This get-copy-content function occasionally fails
 # Try every step for robustness
 

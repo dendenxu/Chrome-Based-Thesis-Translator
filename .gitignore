@@ -1074,3 +1074,6 @@ healthchecksdb
 
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
+
+# Translated content of the translator(sometimes it can be so, so, so large!)
+translated.*

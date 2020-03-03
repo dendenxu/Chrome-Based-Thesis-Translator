@@ -1,3 +1,4 @@
+import time
 from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities as DC
@@ -7,7 +8,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 import win32clipboard as wc
 import win32con
-import time
 # * Selenium APIS: https://selenium.dev/selenium/docs/api/py/api.html
 # Chrome driver and chrome executable path
 # Set absolute path or leave it be(will search in $PATH)
@@ -173,9 +173,9 @@ def ready_to_paste_next(driver):
         return True
 
 def change_source_lang_2_en(driver):
-    language_changer = driver.find_element_by_css_selector("body > div.frame > div.page.tlid-homepage.homepage.translate-text > div.homepage-content-wrap > div.tlid-source-target.main-header > div.source-target-row > div.tlid-input.input > div.tlid-language-bar.ls-wrap > div.sl-selector.lang_list > div > a")
+    language_changer = driver.find_element_by_css_selector(".ls-select.new-ls-select.sl-button.tlid-open-small-source-language-list")
     language_changer.click()
-    language_changer = driver.find_element_by_css_selector("body > div.frame > div.page.tlid-language-picker-page.language-picker-page > div > div.outer-wrap > div:nth-child(1) > div:nth-child(2) > div > div:nth-child(3) > div.language_list_item_wrapper.language_list_item_wrapper-en > div.language_list_item.language_list_item_language_name")
+    language_changer = driver.find_element_by_css_selector(".language_list_item_wrapper-en")
     language_changer.click()
 
 
